@@ -1,0 +1,37 @@
+{
+  "name": "geopolitical-analysis-workflow",
+  "version": "0.1.0",
+  "description": "AI-powered geopolitical analysis system for financial decision support",
+  "private": true,
+  "scripts": {
+    "start": "cd src/web/frontend && npm start",
+    "build": "cd src/web/frontend && npm run build",
+    "test": "cd src/web/frontend && npm test",
+    "lint": "cd src/web/frontend && npm run lint",
+    "format": "cd src/web/frontend && npm run format",
+    "install:frontend": "cd src/web/frontend && npm install",
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:frontend\"",
+    "dev:api": "cd src/api && uvicorn main:app --reload --port 8000",
+    "dev:frontend": "cd src/web/frontend && npm start"
+  },
+  "keywords": [
+    "geopolitical",
+    "ai",
+    "analysis",
+    "forecasting",
+    "financial",
+    "data-science"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "workspaces": [
+    "src/web/frontend"
+  ]
+}

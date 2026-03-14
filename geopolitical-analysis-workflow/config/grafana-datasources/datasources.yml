@@ -1,0 +1,124 @@
+apiVersion: 1
+
+datasources:
+  # Prometheus数据源
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      timeInterval: 15s
+      queryTimeout: 60s
+      httpMethod: POST
+      manageAlerts: true
+      prometheusType: Prometheus
+      prometheusVersion: 2.45.0
+      cacheLevel: "High"
+      incrementalQueryOverlapWindow: "10m"
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: tempo
+
+  # Elasticsearch数据源（日志）
+  - name: Elasticsearch
+    type: elasticsearch
+    access: proxy
+    url: http://elasticsearch:9200
+    database: "geo-logs-*"
+    basicAuth: false
+    isDefault: false
+    editable: true
+    jsonData:
+      interval: Daily
+      timeField: "@timestamp"
+      esVersion: "8.0.0"
+      logMessageField: "message"
+      logLevelField: "level"
+      maxConcurrentShardRequests: 5
+      includeFrozen: false
+
+  # PostgreSQL数据源
+  - name: PostgreSQL
+    type: postgres
+    access: proxy
+    url: postgres:5432
+    database: geopolitical
+    user: geopolitical_user
+    secureJsonData:
+      password: "${POSTGRES_PASSWORD}"
+    isDefault: false
+    editable: true
+    jsonData:
+      sslmode: "disable"
+      postgresVersion: 1500
+      timescaledb: true
+      maxOpenConns: 10
+      maxIdleConns: 10
+      connMaxLifetime: 14400
+
+  # Redis数据源（通过Redis Data Source插件）
+  - name: Redis
+    type: redis-datasource
+    access: proxy
+    url: redis:6379
+    isDefault: false
+    editable: true
+    secureJsonData:
+      password: "${REDIS_PASSWORD}"
+    jsonData:
+      poolSize: 5
+      timeout: 10
+      pingInterval: 30
+      pipelineWindow: 100
+
+  # Tempo数据源（分布式追踪）
+  - name: Tempo
+    type: tempo
+    access: proxy
+    url: http://tempo:3200
+    isDefault: false
+    editable: true
+    jsonData:
+      httpMethod: GET
+      serviceMap:
+        datasourceUid: prometheus
+      search:
+        hide: false
+      nodeGraph:
+        enabled: true
+      tracesToLogs:
+        datasourceUid: elasticsearch
+        tags: ["trace_id", "span_id"]
+        filterByTraceID: true
+        filterBySpanID: true
+      tracesToMetrics:
+        datasourceUid: prometheus
+        tags: ["trace_id", "span_id"]
+
+  # Loki数据源（日志聚合）
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    isDefault: false
+    editable: true
+    jsonData:
+      maxLines: 1000
+      derivedFields:
+        - datasourceUid: tempo
+          matcherRegex: "traceID=(\\w+)"
+          name: TraceID
+          url: "$${__value.raw}"
+
+  # 告警管理器
+  - name: Alertmanager
+    type: alertmanager
+    access: proxy
+    url: http://alertmanager:9093
+    isDefault: false
+    editable: true
+    jsonData:
+      implementation: prometheus
+      handleGrafanaManagedAlerts: true
