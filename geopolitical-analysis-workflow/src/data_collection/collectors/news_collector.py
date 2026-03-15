@@ -16,6 +16,15 @@ import json
 import hashlib
 from urllib.parse import urlparse, urlencode
 
+# 尝试导入dateutil，如果不可用则使用备用方案
+try:
+    from dateutil import parser
+    DATEUTIL_AVAILABLE = True
+except ImportError:
+    DATEUTIL_AVAILABLE = False
+    logger = logging.getLogger(__name__)
+    logger.warning("dateutil库未安装，日期解析功能将受限")
+
 from ..base_collector import DataCollector, CollectorConfig, DataSourceType, DataRecord
 
 logger = logging.getLogger(__name__)
@@ -353,10 +362,40 @@ class NewsCollector(DataCollector):
 
     def _parse_date(self, date_str: str) -> Optional[datetime]:
         """解析日期字符串"""
-        from dateutil import parser
+        if not date_str:
+            return None
+
         try:
-            return parser.parse(date_str)
-        except:
+            # 尝试使用dateutil解析（更灵活）
+            if DATEUTIL_AVAILABLE:
+                return parser.parse(date_str)
+
+            # 备选方案：尝试常见格式
+            from datetime import datetime as dt
+            # 尝试ISO格式
+            try:
+                return dt.fromisoformat(date_str.replace('Z', '+00:00'))
+            except ValueError:
+                pass
+
+            # 尝试其他常见格式
+            common_formats = [
+                '%Y-%m-%dT%H:%M:%S%z',
+                '%Y-%m-%d %H:%M:%S',
+                '%Y-%m-%d',
+                '%d/%m/%Y %H:%M:%S',
+                '%d/%m/%Y'
+            ]
+
+            for fmt in common_formats:
+                try:
+                    return dt.strptime(date_str, fmt)
+                except ValueError:
+                    continue
+
+            return None
+
+        except Exception:
             return None
 
     async def _test_connection(self) -> bool:
