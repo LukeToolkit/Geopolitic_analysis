@@ -68,6 +68,7 @@ arrow==1.2.3
 typer==0.9.0
 click==8.1.7
 rich==13.7.0
+pyyaml==6.0.1
 
 # 测试
 pytest==7.4.3
