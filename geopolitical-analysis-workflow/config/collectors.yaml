@@ -1,0 +1,57 @@
+# 数据收集器配置
+collectors:
+  news_collector:
+    name: "news_collector"
+    source_type: "news"
+    enabled: true
+    interval_seconds: 3600  # 1小时收集一次
+    batch_size: 100
+    timeout_seconds: 300
+    retry_attempts: 3
+    retry_delay_seconds: 60
+    priority: 5
+    params:
+      sources:
+        - type: "newsapi"
+          name: "newsapi"
+          config:
+            keywords:
+              - "geopolitics"
+              - "conflict"
+              - "war"
+              - "sanctions"
+              - "diplomacy"
+              - "international relations"
+              - "foreign policy"
+              - "military"
+        - type: "rss"
+          name: "reuters_world"
+          config:
+            feed_url: "http://feeds.reuters.com/Reuters/worldNews"
+        - type: "rss"
+          name: "bbc_world"
+          config:
+            feed_url: "http://feeds.bbci.co.uk/news/world/rss.xml"
+        - type: "rss"
+          name: "al_jazeera"
+          config:
+            feed_url: "https://www.aljazeera.com/xml/rss/all.xml"
+        - type: "rss"
+          name: "ap_news"
+          config:
+            feed_url: "https://feeds.apnews.com/APNews"
+        - type: "rss"
+          name: "dw_english"
+          config:
+            feed_url: "https://rss.dw.com/rdf/rss-en-all"
+
+  financial_collector:
+    name: "financial_collector"
+    source_type: "financial"
+    enabled: false  # 暂时禁用
+    interval_seconds: 1800
+    batch_size: 50
+    priority: 3
+    params:
+      indicators: ["stocks", "currencies", "commodities"]
+      exchanges: ["NYSE", "NASDAQ", "HKEX"]

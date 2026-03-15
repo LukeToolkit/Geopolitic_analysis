@@ -56,47 +56,51 @@ class DataCollectionManager:
 
     async def _register_collectors(self) -> None:
         """注册所有收集器"""
-        # 这里应该动态导入和注册所有收集器
-        # 暂时只创建一些示例收集器
+        # 动态导入和注册所有收集器
+        for collector_name, config_dict in self._configs.items():
+            try:
+                # 解析配置
+                source_type_str = config_dict.get("source_type", "")
+                try:
+                    source_type = DataSourceType(source_type_str)
+                except ValueError:
+                    logger.warning(f"未知的数据源类型: {source_type_str}，跳过收集器 {collector_name}")
+                    continue
 
-        # 示例：新闻收集器
-        news_config = CollectorConfig(
-            name="news_collector",
-            source_type=DataSourceType.NEWS,
-            interval_seconds=3600,  # 1小时
-            batch_size=100,
-            params={
-                "sources": ["newsapi", "rss"],
-                "topics": ["geopolitics", "conflict", "economics"]
-            }
-        )
+                # 创建CollectorConfig
+                collector_config = CollectorConfig(
+                    name=config_dict.get("name", collector_name),
+                    source_type=source_type,
+                    enabled=config_dict.get("enabled", True),
+                    interval_seconds=config_dict.get("interval_seconds", 3600),
+                    batch_size=config_dict.get("batch_size", 100),
+                    timeout_seconds=config_dict.get("timeout_seconds", 300),
+                    retry_attempts=config_dict.get("retry_attempts", 3),
+                    retry_delay_seconds=config_dict.get("retry_delay_seconds", 60),
+                    priority=config_dict.get("priority", 1),
+                    params=config_dict.get("params", {})
+                )
 
-        # 示例：金融数据收集器
-        financial_config = CollectorConfig(
-            name="financial_collector",
-            source_type=DataSourceType.FINANCIAL,
-            interval_seconds=1800,  # 30分钟
-            batch_size=50,
-            params={
-                "indicators": ["stocks", "currencies", "commodities"],
-                "exchanges": ["NYSE", "NASDAQ", "HKEX"]
-            }
-        )
+                # 根据收集器类型动态导入
+                collector = None
+                if source_type == DataSourceType.NEWS:
+                    from .collectors.news_collector import NewsCollector
+                    collector = NewsCollector(collector_config)
+                elif source_type == DataSourceType.FINANCIAL:
+                    # 金融收集器暂未实现，跳过或创建占位符
+                    logger.info(f"金融收集器 {collector_name} 暂未实现，跳过")
+                    continue
+                else:
+                    logger.warning(f"未实现的收集器类型: {source_type}，跳过 {collector_name}")
+                    continue
 
-        # 从配置文件更新配置
-        if "news_collector" in self._configs:
-            news_config = self._update_config_from_dict(news_config, self._configs["news_collector"])
+                # 注册收集器
+                if collector:
+                    self.registry.register(collector)
+                    logger.info(f"注册收集器: {collector_name} ({source_type.value})")
 
-        if "financial_collector" in self._configs:
-            financial_config = self._update_config_from_dict(financial_config, self._configs["financial_collector"])
-
-        # 创建并注册收集器（这里需要具体实现）
-        # 暂时只创建占位符
-        # news_collector = NewsCollector(news_config)
-        # financial_collector = FinancialDataCollector(financial_config)
-
-        # self.registry.register(news_collector)
-        # self.registry.register(financial_collector)
+            except Exception as e:
+                logger.error(f"注册收集器 {collector_name} 失败: {str(e)}")
 
     def _update_config_from_dict(self, config: CollectorConfig, config_dict: Dict[str, Any]) -> CollectorConfig:
         """从字典更新配置"""
