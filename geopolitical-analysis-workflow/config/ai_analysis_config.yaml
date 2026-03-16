@@ -1,0 +1,141 @@
+# AI分析模块配置
+
+analyzers:
+  ais_analyzer:
+    enabled: true
+    model_provider: "anthropic"
+    model_name: "claude-3-sonnet-20240229"
+    max_tokens: 4000
+    temperature: 0.1
+    use_cached_results: true
+    cache_ttl_seconds: 3600
+    geographic_focus: ["global"]
+    analysis_depth: "standard"
+    params:
+      high_risk_areas: []
+      embargoed_countries: []
+      sensitive_cargo_types: ["weapons", "oil", "chemicals", "nuclear"]
+
+  adsb_analyzer:
+    enabled: true
+    model_provider: "anthropic"
+    model_name: "claude-3-sonnet-20240229"
+    max_tokens: 4000
+    temperature: 0.1
+    use_cached_results: true
+    cache_ttl_seconds: 3600
+    geographic_focus: ["global"]
+    analysis_depth: "standard"
+    params:
+      restricted_airspace: []
+      high_risk_aircraft_types: ["military", "government", "unknown"]
+      sensitive_countries: []
+      no_fly_zones: []
+
+  military_analyzer:
+    enabled: true
+    model_provider: "anthropic"
+    model_name: "claude-3-sonnet-20240229"
+    max_tokens: 5000
+    temperature: 0.1
+    use_cached_results: true
+    cache_ttl_seconds: 7200
+    geographic_focus: ["global"]
+    analysis_depth: "deep"
+    params:
+      flashpoints: []
+      alliances: {}
+      capability_assessments: {}
+
+  fusion_analyzer:
+    enabled: true
+    model_provider: "anthropic"
+    model_name: "claude-3-sonnet-20240229"
+    max_tokens: 6000
+    temperature: 0.1
+    use_cached_results: true
+    cache_ttl_seconds: 5400
+    geographic_focus: ["global"]
+    analysis_depth: "deep"
+    params:
+      correlation_patterns: []
+      geographic_knowledge_base: {}
+      temporal_patterns: {}
+
+# LLM配置
+llm:
+  default_provider: "anthropic"
+  fallback_provider: "openai"
+  max_retries: 3
+  retry_delay: 5
+  timeout: 30
+  cache_enabled: true
+  cache_size: 1000
+  cache_ttl_hours: 1
+
+# 分析管理器配置
+analysis_manager:
+  worker_count: 4
+  max_queue_size: 100
+  default_timeout: 300
+  monitoring_interval: 300
+  stats_retention_days: 7
+
+# 地理空间配置
+geospatial:
+  default_coordinate_system: "WGS84"
+  distance_unit: "kilometers"
+  region_definitions:
+    east_asia:
+      lat_min: 20
+      lat_max: 50
+      lon_min: 100
+      lon_max: 140
+    europe:
+      lat_min: 30
+      lat_max: 50
+      lon_min: -10
+      lon_max: 40
+    middle_east:
+      lat_min: 10
+      lat_max: 40
+      lon_min: 30
+      lon_max: 60
+    north_america:
+      lat_min: 25
+      lat_max: 50
+      lon_min: -130
+      lon_max: -60
+
+# 风险评分配置
+risk_scoring:
+  weights:
+    anomalies: 0.3
+    high_risk_entities: 0.25
+    pattern_changes: 0.2
+    data_quality: 0.15
+    external_factors: 0.1
+  thresholds:
+    low: 2.0
+    medium: 5.0
+    high: 7.5
+    critical: 9.0
+
+# 日志配置
+logging:
+  level: "INFO"
+  format: "json"
+  file_path: "logs/ai_analysis.log"
+  max_size_mb: 100
+  backup_count: 5
+
+# 监控配置
+monitoring:
+  enabled: true
+  metrics_port: 9091
+  health_check_interval: 60
+  alerting:
+    enabled: true
+    error_rate_threshold: 0.2
+    processing_time_threshold: 60.0
+    queue_size_threshold: 50
